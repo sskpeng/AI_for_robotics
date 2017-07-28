@@ -73,6 +73,34 @@ def estimate_next_pos(measurement, OTHER = None):
 
     # You must return xy_estimate (x, y), and OTHER (even if it is None) 
     # in this order for grading purposes.
+    ####----------------------
+    (x, y) = measurement
+    if not OTHER: # this is the first measurement
+        OTHER = (0, 0, 0, x, y)
+    (cnt, x_turn, y_turn, x0, y0) = OTHER 
+    
+    
+
+    if cnt == 0:
+        x_turn = x - x0
+        y_turn = y - y0
+    else:
+        x_turn = (x_turn * (cnt) + (x - x0)) / (cnt + 1)
+        y_turn = (y_turn * (cnt) + (y - y0)) / (cnt + 1)
+
+    print ('turn=', x_turn, y_turn)
+    #print ('mea=', measurement)
+    xe = x + x_turn
+    ye = y + y_turn
+
+    cnt += cnt
+
+    xy_estimate = (xe, ye)
+    #print ('est=', xy_estimate)
+
+    OTHER = (cnt, x_turn, y_turn, x, y)
+
+    ####----------------------
     return xy_estimate, OTHER 
 
 # A helper function you may find useful.
@@ -100,10 +128,10 @@ def demo_grading(estimate_next_pos_fcn, target_bot, OTHER = None):
         true_position = (target_bot.x, target_bot.y)
         error = distance_between(position_guess, true_position)
         if error <= distance_tolerance:
-            print "You got it right! It took you ", ctr, " steps to localize."
+            print ("You got it right! It took you ", ctr, " steps to localize.")
             localized = True
         if ctr == 10:
-            print "Sorry, it took you too many steps to localize the target."
+            print ("Sorry, it took you too many steps to localize the target.")
     return localized
 
 # This is a demo for what a strategy could look like. This one isn't very good.
@@ -121,4 +149,5 @@ def naive_next_pos(measurement, OTHER = None):
 test_target = robot(2.1, 4.3, 0.5, 2*pi / 34.0, 1.5)
 test_target.set_noise(0.0, 0.0, 0.0)
 
-# demo_grading(naive_next_pos, test_target)
+demo_grading(naive_next_pos, test_target)
+demo_grading(estimate_next_pos, test_target)
