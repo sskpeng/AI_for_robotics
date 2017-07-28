@@ -76,30 +76,16 @@ def estimate_next_pos(measurement, OTHER = None):
     ####----------------------
     (x, y) = measurement
     if not OTHER: # this is the first measurement
-        OTHER = (0, 0, 0, x, y)
-    (cnt, x_turn, y_turn, x0, y0) = OTHER 
-    
-    
+        OTHER = (measurement, 0.0)
+     
+    (pos_old, deg) = OTHER
+    step = distance_between(measurement, pos_old)
+    theta = atan2(y - pos_old[1], x - pos_old[0])
+    dTH = theta - deg
 
-    if cnt == 0:
-        x_turn = x - x0
-        y_turn = y - y0
-    else:
-        x_turn = (x_turn * (cnt) + (x - x0)) / (cnt + 1)
-        y_turn = (y_turn * (cnt) + (y - y0)) / (cnt + 1)
+    xy_estimate = (x + step * cos(theta + dTH), y + step * sin(theta +dTH))
 
-    print ('turn=', x_turn, y_turn)
-    #print ('mea=', measurement)
-    xe = x + x_turn
-    ye = y + y_turn
-
-    cnt += cnt
-
-    xy_estimate = (xe, ye)
-    #print ('est=', xy_estimate)
-
-    OTHER = (cnt, x_turn, y_turn, x, y)
-
+    OTHER = (measurement, dTH)
     ####----------------------
     return xy_estimate, OTHER 
 
