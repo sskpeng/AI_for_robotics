@@ -66,6 +66,3 @@ def compute_value(grid,goal,cost):
     # make sure your function returns a grid of values as 
     # demonstrated in the previous video.
     return value 
-res = compute_value(grid,goal,cost)
-for i in range(len(res)):
-    print res[i]

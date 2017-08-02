@@ -1,48 +1,19 @@
 # ----------
-# Background
-# 
-# A robotics company named Trax has created a line of small self-driving robots 
-# designed to autonomously traverse desert environments in search of undiscovered
-# water deposits.
+# Part Two
 #
-# A Traxbot looks like a small tank. Each one is about half a meter long and drives
-# on two continuous metal tracks. In order to maneuver itself, a Traxbot can do one
-# of two things: it can drive in a straight line or it can turn. So to make a 
-# right turn, A Traxbot will drive forward, stop, turn 90 degrees, then continue
-# driving straight.
-#
-# This series of questions involves the recovery of a rogue Traxbot. This bot has 
-# gotten lost somewhere in the desert and is now stuck driving in an almost-circle: it has
-# been repeatedly driving forward by some step size, stopping, turning a certain 
-# amount, and repeating this process... Luckily, the Traxbot is still sending all
-# of its sensor data back to headquarters.
-#
-# In this project, we will start with a simple version of this problem and 
-# gradually add complexity. By the end, you will have a fully articulated
-# plan for recovering the lost Traxbot.
-# 
-# ----------
-# Part One
-#
-# Let's start by thinking about circular motion (well, really it's polygon motion
-# that is close to circular motion). Assume that Traxbot lives on 
-# an (x, y) coordinate plane and (for now) is sending you PERFECTLY ACCURATE sensor 
-# measurements. 
-#
-# With a few measurements you should be able to figure out the step size and the 
-# turning angle that Traxbot is moving with.
-# With these two pieces of information, you should be able to 
-# write a function that can predict Traxbot's next location.
-#
-# You can use the robot class that is already written to make your life easier. 
-# You should re-familiarize yourself with this class, since some of the details
-# have changed. 
+# Now we'll make the scenario a bit more realistic. Now Traxbot's
+# sensor measurements are a bit noisy (though its motions are still
+# completetly noise-free and it still moves in an almost-circle).
+# You'll have to write a function that takes as input the next
+# noisy (x, y) sensor measurement and outputs the best guess 
+# for the robot's next position.
 #
 # ----------
 # YOUR JOB
 #
-# Complete the estimate_next_pos function. You will probably want to use
-# the OTHER variable to keep track of information about the runaway robot.
+# Complete the function estimate_next_pos. You will be considered 
+# correct if your estimate is within 0.01 stepsizes of Traxbot's next
+# true position. 
 #
 # ----------
 # GRADING
@@ -55,13 +26,13 @@
 
 # These import steps give you access to libraries which you may (or may
 # not) want to use.
-from robot import *
+from robot import *  # Check the robot.py tab to see how this works.
 from math import *
-from matrix import *
+from matrix import * # Check the matrix.py tab to see how this works.
+from preditor import *
 import random
 
-
-# This is the function you have to write. The argument 'measurement' is a 
+# This is the function you have to write. Note that measurement is a 
 # single (x, y) point. This function will have to be called multiple
 # times before you have enough information to accurately predict the
 # next position. The OTHER variable that your function returns will be 
@@ -70,54 +41,16 @@ import random
 def estimate_next_pos(measurement, OTHER = None):
     """Estimate the next (x, y) position of the wandering Traxbot
     based on noisy (x, y) measurements."""
+    if not OTHER:
+        OTHER = [ExtendedKalmanFilter(1),]
+    preditor = OTHER[0]
+    est_next = preditor.predict(measurement)
+    xy_estimate = est_next
 
     # You must return xy_estimate (x, y), and OTHER (even if it is None) 
     # in this order for grading purposes.
-    ####----------------------
-    if not OTHER:
-        OTHER = []
-    OTHER.append(measurement)
-    if len(OTHER) == 1:
-        x = OTHER[0][0]
-        y = OTHER[0][1]
-        xy_estimate = (x, y)
-    elif len(OTHER) == 2:
-        x1 = OTHER[0][0]
-        y1 = OTHER[0][1]
-        x2 = OTHER[1][0]
-        y2 = OTHER[1][1]
-        dx = x2 - x1
-        dy = y2 - y1
-        xy_estimate = (x2 + dx, y2 + dy)
-    else:
-        headings = []
-        dists = []
-        for i in range(1, len(OTHER)):
-            p1 = (OTHER[i][0], OTHER[i][1])
-            p2 = (OTHER[i-1][0], OTHER[i-1][1])
-            dist = distance_between(p1, p2)
-            dx = p1[0] - p2[0]
-            dy = p1[1] - p2[1]
-            heading = atan2(dy, dx)
-            dists.append(dist)
-            headings.append(heading)
-        turnings = []
-        for i in range(1, len(headings)):
-            turnings.append(headings[i] - headings[i-1])
-
-        est_dist = sum(dists) / len(dists)
-        est_turning = sum(turnings) / len(turnings)
-        est_heading = angle_trunc(headings[-1] + est_turning)
-        x = OTHER[-1][0]
-        y = OTHER[-1][1]
-        est_x = x + est_dist * cos(est_heading)
-        est_y = y + est_dist * sin(est_heading)
-        xy_estimate = (est_x, est_y)
-
-        
-
-    ####----------------------
-    return xy_estimate, OTHER 
+    #xy_estimate = (3.2, 9.1)
+    return xy_estimate, OTHER
 
 # A helper function you may find useful.
 def distance_between(point1, point2):
@@ -136,7 +69,7 @@ def demo_grading2(estimate_next_pos_fcn, target_bot, OTHER = None):
     # if you haven't localized the target bot, make a guess about the next
     # position, then we move the bot and compare your guess to the true
     # next position. When you are close enough, we stop checking.
-    while not localized and ctr <= 10: 
+    while not localized and ctr <= 1000:
         ctr += 1
         measurement = target_bot.sense()
         position_guess, OTHER = estimate_next_pos_fcn(measurement, OTHER)
@@ -146,7 +79,7 @@ def demo_grading2(estimate_next_pos_fcn, target_bot, OTHER = None):
         if error <= distance_tolerance:
             print ("You got it right! It took you ", ctr, " steps to localize.")
             localized = True
-        if ctr == 10:
+        if ctr == 1000:
             print ("Sorry, it took you too many steps to localize the target.")
     return localized
 
@@ -181,7 +114,7 @@ def demo_grading(estimate_next_pos_fcn, target_bot, OTHER = None):
     broken_robot.penup()
     measured_broken_robot.penup()
     #End of Visualization
-    while not localized and ctr <= 10:
+    while not localized and ctr <= 1000:
         ctr += 1
         measurement = target_bot.sense()
         position_guess, OTHER = estimate_next_pos_fcn(measurement, OTHER)
@@ -191,7 +124,7 @@ def demo_grading(estimate_next_pos_fcn, target_bot, OTHER = None):
         if error <= distance_tolerance:
             print ("You got it right! It took you ", ctr, " steps to localize.")
             localized = True
-        if ctr == 10:
+        if ctr == 1000:
             print ("Sorry, it took you too many steps to localize the target.")
         #More Visualization
         measured_broken_robot.setheading(target_bot.heading*180/pi)
@@ -205,6 +138,10 @@ def demo_grading(estimate_next_pos_fcn, target_bot, OTHER = None):
         prediction.stamp()
         #End of Visualization
     return localized
+
+
+
+
 # This is a demo for what a strategy could look like. This one isn't very good.
 def naive_next_pos(measurement, OTHER = None):
     """This strategy records the first reported position of the target and
@@ -218,7 +155,7 @@ def naive_next_pos(measurement, OTHER = None):
 # This is how we create a target bot. Check the robot.py file to understand
 # How the robot class behaves.
 test_target = robot(2.1, 4.3, 0.5, 2*pi / 34.0, 1.5)
-test_target.set_noise(0.0, 0.0, 0.0)
+measurement_noise = 0.05 * test_target.distance
+test_target.set_noise(0.0, 0.0, measurement_noise)
 
 demo_grading(naive_next_pos, test_target)
-demo_grading(estimate_next_pos, test_target)
