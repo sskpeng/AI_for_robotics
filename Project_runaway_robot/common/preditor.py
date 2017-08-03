@@ -1,22 +1,3 @@
-Skip to content
-This repository
-Search
-Pull requests
-Issues
-Marketplace
-Gist
- @sskpeng
- Sign out
- Watch 1
-  Star 4
-  Fork 2 LujunWeng/runaway-robot
- Code  Issues 0  Pull requests 0  Projects 0  Wiki Insights 
-Branch: master Find file Copy pathrunaway-robot/common/predictor.py
-1651882  on Jun 16, 2016
-@LujunWeng LujunWeng Implement EKF location
-1 contributor
-RawBlameHistory     
-212 lines (189 sloc)  6.94 KB
 from matrix import *
 from utils import *
 
@@ -228,5 +209,3 @@ def predicate_mean(measurement, OTHER=None):
     # You must return xy_estimate (x, y), and OTHER (even if it is None)
     # in this order for grading purposes.
     return xy_estimate, OTHER
-Contact GitHub API Training Shop Blog About
-© 2017 GitHub, Inc. Terms Privacy Security Status Help

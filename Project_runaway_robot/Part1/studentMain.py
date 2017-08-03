@@ -78,44 +78,39 @@ def estimate_next_pos(measurement, OTHER = None):
         OTHER = []
     OTHER.append(measurement)
     if len(OTHER) == 1:
-        x = OTHER[0][0]
-        y = OTHER[0][1]
-        xy_estimate = (x, y)
+        (est_x, est_y) = measurement
     elif len(OTHER) == 2:
-        x1 = OTHER[0][0]
-        y1 = OTHER[0][1]
-        x2 = OTHER[1][0]
-        y2 = OTHER[1][1]
-        dx = x2 - x1
-        dy = y2 - y1
-        xy_estimate = (x2 + dx, y2 + dy)
+        (x1, y1) = measurement
+        (x0, y0) = OTHER[0]
+        dx = x1 - x0
+        dy = y1 - y0
+        est_x = x1 + dx
+        est_y = y1 + y0
     else:
         headings = []
         dists = []
-        for i in range(1, len(OTHER)):
-            p1 = (OTHER[i][0], OTHER[i][1])
-            p2 = (OTHER[i-1][0], OTHER[i-1][1])
-            dist = distance_between(p1, p2)
-            dx = p1[0] - p2[0]
-            dy = p1[1] - p2[1]
+        for i in range(1,len(OTHER)):
+            (x1, y1) = OTHER[i]
+            (x0, y0) = OTHER[i-1]
+            dx = x1 - x0
+            dy = y1 - y0
             heading = atan2(dy, dx)
-            dists.append(dist)
+            dist = distance_between((x1, y1), (x0, y0))
+
             headings.append(heading)
-        turnings = []
-        for i in range(1, len(headings)):
-            turnings.append(headings[i] - headings[i-1])
-
-        est_dist = sum(dists) / len(dists)
-        est_turning = sum(turnings) / len(turnings)
-        est_heading = angle_trunc(headings[-1] + est_turning)
-        x = OTHER[-1][0]
-        y = OTHER[-1][1]
-        est_x = x + est_dist * cos(est_heading)
-        est_y = y + est_dist * sin(est_heading)
-        xy_estimate = (est_x, est_y)
-
+            dists.append(dist)
+        turns = []
+        for j in range(1,len(headings)):
+            turn = headings[j] - headings[j-1]
+            turns.append(turn)
         
+        avg_turn = sum(turns) / len(turns)
+        avg_dist = sum(dists) / len(dists)
 
+        est_x = measurement[0] + avg_dist * cos(headings[-1] + avg_turn)
+        est_y = measurement[1] + avg_dist * sin(headings[-1] + avg_turn)
+
+    xy_estimate = (est_x, est_y)
     ####----------------------
     return xy_estimate, OTHER 
 
@@ -129,7 +124,7 @@ def distance_between(point1, point2):
 # This is here to give you a sense for how we will be running and grading
 # your code. Note that the OTHER variable allows you to store any 
 # information that you want. 
-def demo_grading2(estimate_next_pos_fcn, target_bot, OTHER = None):
+def demo_grading(estimate_next_pos_fcn, target_bot, OTHER = None):
     localized = False
     distance_tolerance = 0.01 * target_bot.distance
     ctr = 0
@@ -143,6 +138,7 @@ def demo_grading2(estimate_next_pos_fcn, target_bot, OTHER = None):
         target_bot.move_in_circle()
         true_position = (target_bot.x, target_bot.y)
         error = distance_between(position_guess, true_position)
+        #print(position_guess, true_position, error)
         if error <= distance_tolerance:
             print ("You got it right! It took you ", ctr, " steps to localize.")
             localized = True
@@ -150,7 +146,7 @@ def demo_grading2(estimate_next_pos_fcn, target_bot, OTHER = None):
             print ("Sorry, it took you too many steps to localize the target.")
     return localized
 
-def demo_grading(estimate_next_pos_fcn, target_bot, OTHER = None):
+def demo_grading1(estimate_next_pos_fcn, target_bot, OTHER = None):
     localized = False
     distance_tolerance = 0.01 * target_bot.distance
     ctr = 0
@@ -220,5 +216,5 @@ def naive_next_pos(measurement, OTHER = None):
 test_target = robot(2.1, 4.3, 0.5, 2*pi / 34.0, 1.5)
 test_target.set_noise(0.0, 0.0, 0.0)
 
-demo_grading(naive_next_pos, test_target)
+#demo_grading(naive_next_pos, test_target)
 demo_grading(estimate_next_pos, test_target)

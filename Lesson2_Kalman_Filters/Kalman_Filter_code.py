@@ -27,4 +27,4 @@ for i in range(len(motion)):
     [mu, sig] = update(mu, sig, measurements[i], measurement_sig)
     [mu, sig] = predict(mu, sig, motion[i], motion_sig)
 
-print [mu, sig]
+print ([mu, sig])
